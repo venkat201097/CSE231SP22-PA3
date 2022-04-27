@@ -81,13 +81,16 @@ function codeGenClassDef(classdef: ClassDef<Type>, classFieldToOffset: Map<any, 
 }
 
 function codeGenConstructor(classdef: ClassDef<Type>) : string {
-  const constructorCode : string[] = [];
+  const constructorCode : string[] = [
+    `(global.get $heap)
+  (i32.const 0)
+  (i32.store)`
+  ];
   var fieldIndex : number = 0
-
   classdef.fielddefs.forEach(field => {
     constructorCode.push(`
     (global.get $heap)
-    (i32.add (i32.const ${fieldIndex*4}))
+    (i32.add (i32.const ${fieldIndex*4 + 4}))
     (i32.const ${field.value.value})
     (i32.store)`);
     fieldIndex++;
@@ -95,7 +98,7 @@ function codeGenConstructor(classdef: ClassDef<Type>) : string {
   constructorCode.push(`
   (global.get $heap)
   (global.get $heap)
-  (i32.add (i32.const ${fieldIndex*4}))
+  (i32.add (i32.const ${fieldIndex*4 + 4}))
   (global.set $heap)`);
 
   return `(func $${classdef.name} (result i32) ${constructorCode.join('')})`
@@ -168,7 +171,7 @@ function codeGenStmt(stmt : Stmt<Type>, classFieldToOffset: Map<any, any> = new 
             (call $runtimeError)
           )
         )`;
-        var fieldCode = `(i32.add (i32.const ${getFieldOffset(stmt.lhs.obj.a, stmt.lhs.field, classFieldToOffset)*4}))`;
+        var fieldCode = `(i32.add (i32.const ${getFieldOffset(stmt.lhs.obj.a, stmt.lhs.field, classFieldToOffset)*4 + 4}))`;
         // const objCode = codeGenExpr(stmt.lhs, classFieldToOffset, localVars);
         return `${objCode} ${checkOperationOnNoneCode} ${fieldCode} ${valueCode} (i32.store)`
       }
@@ -259,7 +262,7 @@ function codeGenExpr(expr : Expr<any>, classFieldToOffset: Map<any, any> = new M
       )`;
       if(fieldAccess==='attribute')
         var fieldCode = `
-        (i32.add (i32.const ${getFieldOffset(expr.obj.a, expr.field, classFieldToOffset)*4}))
+        (i32.add (i32.const ${getFieldOffset(expr.obj.a, expr.field, classFieldToOffset)*4 + 4}))
         (i32.load)`;
       else
         var fieldCode = ``;

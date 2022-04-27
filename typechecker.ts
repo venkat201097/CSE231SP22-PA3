@@ -277,7 +277,7 @@ export function typeCheckStmt(stmt: Stmt<null>, env: Env) : Stmt<Type> {
             else
                 var vartype = env.localEnv.vars.get(stmt.lhs.name)
             if(!assignableTo(vartype, typedValue.a))
-                throw new Error(`TYPE ERROR: Expected type <${vartype}>; got type <${typedValue.a}>`);
+                throw new Error(`TYPE ERROR: Expected type <${getTypeName(vartype)}>; got type <${getTypeName(typedValue.a)}>`);
             return {...stmt, a:{tag:"none"}, value:typedValue}
             
         

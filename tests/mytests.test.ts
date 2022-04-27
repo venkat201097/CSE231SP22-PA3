@@ -1,6 +1,54 @@
 import { assertPrint, assertFail, assertTCFail, assertTC } from "./asserts.test";
 import { NUM, BOOL, NONE, CLASS } from "./helpers.test"
 describe("My tests", () => {
+
+  assertPrint("print-obj-is-obj",`
+  class A(object):
+    i:int=3
+
+  class B(object):
+    i:int = 3
+
+  a:A = None
+  a1:A = None
+  b:B = None
+  b1:B = None
+  print(a is None)
+  print(b is None)
+  print(a is b)
+  a = A()
+  b = B()
+  a1 = A()
+  b1 = B()
+  print(a is b)
+  print(a is a1)
+  print(b is b1)`,['True','True','True','False', 'False','False'])
+
+
+  assertPrint("print-obj-is-obj-2",`
+  class A(object):
+    def f(self:A):
+        return
+
+  class B(object):
+    def f(self:B):
+        return
+
+  a:A = None
+  a1:A = None
+  b:B = None
+  b1:B = None
+  print(a is None)
+  print(b is None)
+  print(a is b)
+  a = A()
+  b = B()
+  a1 = A()
+  b1 = B()
+  print(a is b)
+  print(a is a1)
+  print(b is b1)`,['True','True','True','False', 'False','False'])
+
   assertTC("tc-prog-return-int-basic", `
   x : int = 1
   x`, NUM);
