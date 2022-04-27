@@ -82,7 +82,8 @@ function codeGenClassDef(classdef: ClassDef<Type>, classFieldToOffset: Map<any, 
 
 function codeGenConstructor(classdef: ClassDef<Type>) : string {
   const constructorCode : string[] = [
-    `(global.get $heap)
+  `(local $scratch i32)
+  (global.get $heap)
   (i32.const 0)
   (i32.store)`
   ];
@@ -95,11 +96,24 @@ function codeGenConstructor(classdef: ClassDef<Type>) : string {
     (i32.store)`);
     fieldIndex++;
   })
+  var getObjectForCallInitCode : string = '';
+  var callInitCode : string = '';
+  if(classdef.methoddefs!==undefined && new Set(classdef.methoddefs.map(methoddef => methoddef.name)).has('__init__')){
+    getObjectForCallInitCode = `
+    (global.get $heap)`;
+    callInitCode = `
+    (call $__init__$${classdef.name})
+    (local.set $scratch)`;
+  }
+    
   constructorCode.push(`
   (global.get $heap)
+  ${getObjectForCallInitCode}
   (global.get $heap)
   (i32.add (i32.const ${fieldIndex*4 + 4}))
-  (global.set $heap)`);
+  (global.set $heap)
+  ${callInitCode}
+  `);
 
   return `(func $${classdef.name} (result i32) ${constructorCode.join('')})`
 }

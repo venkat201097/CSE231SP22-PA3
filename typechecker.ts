@@ -401,7 +401,7 @@ export function typeCheckExpr(expr: Expr<null>, env: Env, fieldAccess:'attribute
                 binexprType = {tag:"bool"};
             }
             else if(new Set(["==", "!="]).has(expr.op.tag)){
-                if(typedl_oprnd.a.tag=="none" || typedr_oprnd.a.tag=="none" || typedl_oprnd.a.tag!=typedr_oprnd.a.tag)
+                if(typedl_oprnd.a.tag=="none" || typedr_oprnd.a.tag=="none" || typedl_oprnd.a.tag!=typedr_oprnd.a.tag || (typedl_oprnd.a.tag==="object" && typedr_oprnd.a.tag==="object"))
                     throw new Error(`TYPE ERROR: Cannot perform operation ${expr.op.tag} on types <${getTypeName(typedl_oprnd.a)}> and <${getTypeName(typedr_oprnd.a)}>`)
                 binexprType = {tag:"bool"};
             }

@@ -25,6 +25,12 @@ describe("My tests", () => {
   print(b is b1)`,['True','True','True','False', 'False','False'])
 
 
+  assertPrint("call-init",`
+  class A(object):
+    def __init__(self:A):
+        print(9)
+  A()`, ['9'])
+
   assertPrint("print-obj-is-obj-2",`
   class A(object):
     def f(self:A):
@@ -258,6 +264,26 @@ describe("TYPE ERRORS", () => {
     def __init__(self:A)->int:
         return 4
   A()`)
+
+  assertTCFail("obj-eq-obj",`
+  class A(object):
+    def f(self:A):
+        return
+
+  class B(object):
+    def f(self:B):
+        return
+
+  a:A = None
+  a1:A = None
+  b:B = None
+  b1:B = None
+  a = A()
+  b = B()
+  a1 = A()
+  b1 = B()
+  print(a==a)`)
+
 //   assertTCFail("constructor-args", `
 //   class A(object):
 //     def f(self:A):
