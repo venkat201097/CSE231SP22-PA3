@@ -75,7 +75,7 @@ describe("My tests", () => {
   i:A = None
   i = A()
   i
-  `, CLASS);
+  `, CLASS('A'));
 
   assertTC("tc-if-return-else-return-noreturn", `
   class A(object):
