@@ -46,10 +46,15 @@ export function assertTC(name: string, source: string, result: any) {
 
 // Assert an error gets thrown at type-checking
 export function assertTCFail(name: string, source: string) {
+  if(name==='if-return-noreturn'){
+    it(name, async () => {
+      expect(function(){
+        typeCheck(source);
+    }).to.throw('if error:')})
+  }
   it(name, async () => {
     expect(function(){
       typeCheck(source);
   }).to.throw('TYPE ERROR:');
   });
 }
-

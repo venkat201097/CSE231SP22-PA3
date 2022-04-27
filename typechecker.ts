@@ -55,7 +55,7 @@ export function typeCheckProgram(program: Program<null>) : Program<Type>{
 
     program.classdefs.forEach((classdef) => {
         if(env.globalEnv.classes.has(classdef.name))
-            throw new Error("Duplicate declaration of variable in same scope: " + classdef.name);
+            throw new Error("TYPE ERROR: Duplicate declaration of variable in same scope: " + classdef.name);
         env.globalEnv.classes.set(classdef.name, {fields: new Map(), methods: new Map()})
         env.globalEnv.funcs.set(classdef.name, {arglist: [], retType: {tag: "object", class: classdef.name}})
     })
@@ -118,11 +118,11 @@ export function typeCheckVarDef(vardef: VarDef<null>, env: Env) : VarDef<Type> {
         throw new Error(`TYPE ERROR: Expected type <${getTypeName(vardef.typedef)}>; got type <${getTypeName(typedValue.a)}>`);
     if(env.localEnv==undefined){
         if(env.globalEnv.vars.has(vardef.name) || env.globalEnv.funcs.has(vardef.name) || env.globalEnv.classes.has(vardef.name))
-            throw new Error("Duplicate declaration of variable in same scope: " + vardef.name);
+            throw new Error("TYPE ERROR: Duplicate declaration of variable in same scope: " + vardef.name);
         env.globalEnv.vars.set(vardef.name, vardef.typedef)
     }
     else if(env.localEnv.vars.has(vardef.name))
-        throw new Error("Duplicate declaration of variable in same scope: " + vardef.name);
+        throw new Error("TYPE ERROR: Duplicate declaration of variable in same scope: " + vardef.name);
     else
         env.localEnv.vars.set(vardef.name, vardef.typedef)
     return {...vardef, a: vardef.typedef, value: typedValue}
@@ -146,7 +146,7 @@ export function typeCheckClassDef(classdef: ClassDef<null>, env:Env) : ClassDef<
 
     classdef.methoddefs.forEach((methoddef) => {
         if(classEnvMap.fields.has(methoddef.name))
-            throw new Error("Duplicate declaration of variable in same scope: " + methoddef.name);
+            throw new Error("TYPE ERROR: Duplicate declaration of variable in same scope: " + methoddef.name);
 
         classEnvMap.methods.set(methoddef.name, {arglist: methoddef.args.map(i => typeCheckType(i.typedef, env)), retType: typeCheckType(methoddef.rettype, env)});
     })
@@ -155,10 +155,10 @@ export function typeCheckClassDef(classdef: ClassDef<null>, env:Env) : ClassDef<
     classdef.methoddefs.forEach((methoddef) => {
         const typedMethodDef = typeCheckFuncDef(methoddef, createNewScopeEnv(env));
         if(typedMethodDef.args===undefined || typedMethodDef.args.length===0)
-            throw new Error(`TYPE ERROR: First parameter of the following method must be of the enclosing class: ${typedMethodDef.name}`);
+            throw new Error(`First parameter of the following method must be of the enclosing class: ${typedMethodDef.name}`);
         var firstargtype = typedMethodDef.args[0].typedef
         if(firstargtype===undefined || firstargtype.tag!=="object" || firstargtype.class!==classdef.name)
-            throw new Error(`TYPE ERROR: First parameter of the following method must be of the enclosing class: ${typedMethodDef.name}`);
+            throw new Error(`First parameter of the following method must be of the enclosing class: ${typedMethodDef.name}`);
         typedMethodDefs.push(typedMethodDef);
     })
 
@@ -202,9 +202,11 @@ export function typeCheckIfStatement(stmt: Stmt<null>, env: Env) : Stmt<Type> {
     if(stmt.ifcondition==undefined)
         return {...stmt, body:typedBody, a:rettype};
     var typedCondition = typeCheckExpr(stmt.ifcondition, env);
+    if(typedCondition.a.tag!=="bool")
+        throw new Error(`TYPE ERROR: Condition expression cannot be of type <${getTypeName(typedCondition.a)}>`);
     if(stmt.elseblock==undefined){
-        if(typedCondition.a.tag!=="bool")
-            throw new Error(`Condition expression cannot be of type <${typedCondition.a}>`);
+        // if(typedCondition.a.tag!=="bool")
+        //     throw new Error(`TYPE ERROR: Condition expression cannot be of type <${getTypeName(typedCondition.a)}>`);
         return {...stmt, body:typedBody, ifcondition:typedCondition, a:{tag:"none"}};
     }
     const typedElse = typeCheckIfStatement(stmt.elseblock, env);
@@ -219,7 +221,8 @@ export function typeCheckBody(body: Stmt<null>[], env: Env) : [Stmt<Type>[], Typ
     const typedBody : Stmt<Type>[] = [];
     body.forEach(stmt => {
         const typedStmt = typeCheckStmt(stmt, env);
-        rettype = typedStmt.a;
+        if(typedStmt.tag!=="expr")
+            rettype = typedStmt.a;
         typedBody.push(typedStmt);
     })
     return [typedBody, rettype];
@@ -246,7 +249,7 @@ export function typeCheckStmt(stmt: Stmt<null>, env: Env) : Stmt<Type> {
                 if(!env.globalEnv.vars.has(stmt.lhs.name))
                     throw new Error(`TYPE ERROR: Not a variable: ${stmt.lhs.name}`);
                 else
-                    throw new Error(`Cannot assign to variable that is not explicitly declared in this scope: ${stmt.lhs.name}`);
+                    throw new Error(`TYPE ERROR: Cannot assign to variable that is not explicitly declared in this scope: ${stmt.lhs.name}`);
             else
                 var vartype = env.localEnv.vars.get(stmt.lhs.name)
             if(!assignableTo(vartype, typedValue.a))
@@ -274,7 +277,7 @@ export function typeCheckStmt(stmt: Stmt<null>, env: Env) : Stmt<Type> {
         
         case "return":
             if(env.localEnv==undefined)
-                throw new Error(`Return statement cannot appear at the top level`);
+                throw new Error(`TYPE ERROR: Return statement cannot appear at the top level`);
             var retType : Type;
             if(stmt.expr===undefined)
                 retType = {tag: "none"};
@@ -349,7 +352,7 @@ export function typeCheckExpr(expr: Expr<null>, env: Env, fieldAccess:'attribute
             const typedArgList : Expr<Type>[] = [];
             // const funcArgList = env.globalEnv.funcs.get(funcname);
             if(funcArgList.arglist.length!==expr.arglist.length)
-                throw new Error(`Expected ${funcArgList.arglist.length} arguments; got ${expr.arglist.length}`)
+                throw new Error(`TYPE ERROR: Expected ${funcArgList.arglist.length} arguments; got ${expr.arglist.length}`)
             for(var i: number = 0; i<expr.arglist.length; i++){
                 var typedArg = typeCheckExpr(expr.arglist[i], env);
                 if(!assignableTo(funcArgList.arglist[i], typedArg.a) && funcArgList.arglist[i].tag!=="any")

@@ -165,6 +165,9 @@ export function traverseIfStatement(c : TreeCursor, s : string) : Stmt<null> {
     const elseblock = traverseIfStatement(c, s);
     return { tag: "if", ifcondition: ifcondition, body: body, elseblock: elseblock }
   }
+  else{
+    throw new Error(`Parse Error: Expected else block at ${c.from}:${c.to} - ${s.substring(c.from, c.to)}`);
+  }
   return { tag: "if", ifcondition: ifcondition, body: body }
 }
 

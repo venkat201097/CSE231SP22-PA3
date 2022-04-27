@@ -23,6 +23,46 @@ describe("My tests", () => {
   i = A()
   i
   `, CLASS);
+
+  assertTC("tc-if-return-else-return-noreturn", `
+  class A(object):
+    def f(self:A)->int:
+        if True:
+            return 3
+        else:
+            return 3+9
+  A().f()`, NUM);
+
+  assertTC("tc-if-return-else-noreturn-return", `
+  class A(object):
+    def f(self:A)->bool:
+        if 9*4<=0:
+            return True
+        else:
+            False
+        return False
+  A().f()`, BOOL);
+
+  assertTC("tc-if-noreturn-else-return-return", `
+  class A(object):
+    def f(self:A)->bool:
+        if True==not True:
+            True
+        else:
+            return False
+        return True
+  A().f()`, BOOL);
+
+  assertTC("tc-if-noreturn-else-noreturn-return", `
+  class A(object):
+    def f(self:A)->int:
+        if 5//4==0:
+            4
+        else:
+            6
+        return 4*6
+  A().f()`, NUM);
+
 })
 
 describe("TYPE ERRORS", () => {
@@ -72,8 +112,108 @@ describe("TYPE ERRORS", () => {
   a:int=8
   a=i`)
   
-  assertTCFail("init-no-args", `
+//   assertTCFail("init-no-args", `
+//   class A(object):
+//     def f():
+//         return`)
+//   assertTCFail("if-return-noreturn", `
+//   class A(object):
+//     def f(self:A)->int:
+//         if 3==5:
+//             return 4
+//   A().f()`)
+  assertTCFail("if-return-else-noreturn-noreturn", `
   class A(object):
-    def f():
-        return`)
+    def f(self:A)->int:
+        if 3>0:
+            return 4
+        else:
+            2-3
+  A().f()`)
+  assertTCFail("if-noreturn-else-return-noreturn", `
+  class A(object):
+    def f(self:A)->int:
+        if 3<9:
+            pass
+        else:
+            return 9
+  A().f()`)
+
+  assertTCFail("if-noreturn-else-noreturn-noreturn", `
+  class A(object):
+    def f(self:A)->int:
+        if 3%3<=9:
+            pass
+        else:
+            3-4
+  A().f()`)
+
+  assertTCFail("arity-error-0-1", `
+  class A(object):
+    def f(self:A)->int:
+        return 2
+  A().f(2)`)
+
+  assertTCFail("arity-error-0-2", `
+  class A(object):
+    def f(self:A)->int:
+        return 2
+  A().f(2,A())`)
+
+  assertTCFail("arity-error-1-0", `
+  class A(object):
+    def f(self:A, i:int)->int:
+        return 2
+  A().f()`)
+  assertTCFail("arity-error-2-0", `
+  class A(object):
+    def f(self:A, i:int, b:A)->int:
+        return 2
+  A().f()`)
+
+  assertTCFail("arity-error-n-m<n", `
+  class A(object):
+    def f(self:A, i:int,b:A)->int:
+        return 2
+  A().f(A())`)
+
+  assertTCFail("arity-error-n-m>n", `
+  class A(object):
+    def f(self:A, i:int,b:A)->int:
+        return 2
+  A().f(A(), A(), A())`)
+
+  assertTCFail("arity-type-error-0-1", `
+  class A(object):
+    def f(self:A, i:int,b:A)->int:
+        return 2
+  A().f(A(), A())`)
+
+  assertTCFail("arity-type-error-1-0", `
+  class A(object):
+    def f(self:A, i:int,b:A)->int:
+        return 2
+  A().f(5, 5)`)
+
+  assertTCFail("arity-type-error-0-0", `
+  class A(object):
+    def f(self:A, i:int,b:A)->int:
+        return 2
+  A().f(A(), 9)`)
+
+  assertTCFail("constructor-args", `
+  class A(object):
+    i:int=9
+  A(3)`)
+
+//   assertTCFail("constructor-args", `
+//   class A(object):
+//     def f(self:A):
+//         if True:
+//             pass
+//         elif:
+//             pass
+//         else:
+//             lol
+//   A(3)`)
 })
