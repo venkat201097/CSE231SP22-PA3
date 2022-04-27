@@ -19,10 +19,6 @@ export function typeCheck(source: string) : Type {
 
 // Modify run to use `importObject` (imported above) to use for printing
 export async function run(source: string) { 
-  // run2(source, {importObject}).then((r) => { 
-  //   // importObject.output = `pol${r}`;
-  //   // return r;
-  // });
   const myimportobject = {
     imports: importObject.imports,
     js: {

@@ -29,10 +29,10 @@ function createNewScopeEnv(env: Env) : Env {
 function getBuiltIns() : Map<string, { arglist:Type[], retType: Type }>{
     var builtins : Map<string, { arglist:Type[], retType: Type }> = new Map();
     builtins.set("print", {arglist: [{tag:"any"}], retType: {tag:"none"}});
-    builtins.set("abs", {arglist: [{tag:"int"}], retType: {tag:"int"}});
-    builtins.set("max", {arglist: [{tag:"int"}, {tag:"int"}], retType: {tag:"int"}});
-    builtins.set("min", {arglist: [{tag:"int"}, {tag:"int"}], retType: {tag:"int"}});
-    builtins.set("pow", {arglist: [{tag:"int"}, {tag:"int"}], retType: {tag:"int"}});
+    // builtins.set("abs", {arglist: [{tag:"int"}], retType: {tag:"int"}});
+    // builtins.set("max", {arglist: [{tag:"int"}, {tag:"int"}], retType: {tag:"int"}});
+    // builtins.set("min", {arglist: [{tag:"int"}, {tag:"int"}], retType: {tag:"int"}});
+    // builtins.set("pow", {arglist: [{tag:"int"}, {tag:"int"}], retType: {tag:"int"}});
 
     return builtins
 }
@@ -154,6 +154,11 @@ export function typeCheckClassDef(classdef: ClassDef<null>, env:Env) : ClassDef<
 
     classdef.methoddefs.forEach((methoddef) => {
         const typedMethodDef = typeCheckFuncDef(methoddef, createNewScopeEnv(env));
+        if(typedMethodDef.args===undefined || typedMethodDef.args.length===0)
+            throw new Error(`TYPE ERROR: First parameter of the following method must be of the enclosing class: ${typedMethodDef.name}`);
+        var firstargtype = typedMethodDef.args[0].typedef
+        if(firstargtype===undefined || firstargtype.tag!=="object" || firstargtype.class!==classdef.name)
+            throw new Error(`TYPE ERROR: First parameter of the following method must be of the enclosing class: ${typedMethodDef.name}`);
         typedMethodDefs.push(typedMethodDef);
     })
 
@@ -234,12 +239,12 @@ export function typeCheckStmt(stmt: Stmt<null>, env: Env) : Stmt<Type> {
             }
             if(env.localEnv==undefined)
                 if(!env.globalEnv.vars.has(stmt.lhs.name))
-                    throw new Error(`ReferenceError: Not a variable: ${stmt.lhs.name}`);
+                    throw new Error(`TYPE ERROR: Not a variable: ${stmt.lhs.name}`);
                 else
                     var vartype = env.globalEnv.vars.get(stmt.lhs.name)
             else if(!env.localEnv.vars.has(stmt.lhs.name))
                 if(!env.globalEnv.vars.has(stmt.lhs.name))
-                    throw new Error(`ReferenceError: Not a variable: ${stmt.lhs.name}`);
+                    throw new Error(`TYPE ERROR: Not a variable: ${stmt.lhs.name}`);
                 else
                     throw new Error(`Cannot assign to variable that is not explicitly declared in this scope: ${stmt.lhs.name}`);
             else
@@ -291,13 +296,13 @@ export function typeCheckExpr(expr: Expr<null>, env: Env, fieldAccess:'attribute
         case "id": 
             if(env.localEnv==undefined)
                 if(!env.globalEnv.vars.has(expr.name))
-                    throw new Error(`ReferenceError: Not a variable: ${expr.name}`);
+                    throw new Error(`TYPE ERROR: Not a variable: ${expr.name}`);
                 else
                     return {...expr, a:env.globalEnv.vars.get(expr.name)}
             else
                 if(!env.localEnv.vars.has(expr.name))
                     if(!env.globalEnv.vars.has(expr.name))
-                        throw new Error(`ReferenceError: Not a variable: ${expr.name}`);  
+                        throw new Error(`TYPE ERROR: Not a variable: ${expr.name}`);  
                     else
                         return {...expr, a:env.globalEnv.vars.get(expr.name)}
                 else
@@ -325,7 +330,7 @@ export function typeCheckExpr(expr: Expr<null>, env: Env, fieldAccess:'attribute
             var funcArgList:{ arglist:Type[], retType: Type } = {arglist:[], retType: {tag:"none"}};
             if(expr.name.tag==="id"){
                 if(!env.globalEnv.funcs.get(expr.name.name))
-                    throw new Error(`ReferenceError: Not a function or class: ${expr.name.name}`);
+                    throw new Error(`TYPE ERROR: Not a function or class: ${expr.name.name}`);
                 else{
                     var typedName: Expr<Type> = {...expr.name, a:{tag:"none"}}
                     var funcname = expr.name.name;

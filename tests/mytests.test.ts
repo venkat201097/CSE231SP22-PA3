@@ -68,4 +68,12 @@ describe("TYPE ERRORS", () => {
     j:int = 0
   x = A()`)
 
+  assertTCFail("not-a-var", `
+  a:int=8
+  a=i`)
+  
+  assertTCFail("init-no-args", `
+  class A(object):
+    def f():
+        return`)
 })
