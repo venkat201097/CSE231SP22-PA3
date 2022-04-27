@@ -175,7 +175,7 @@ export function typeCheckFuncDef(funcdef: FuncDef<null>, env:Env) : FuncDef<Type
     env.localEnv.retType = funcdef.rettype;
     const typedBody = typeCheckFuncBody(funcdef.body, env);
     if(!assignableTo(env.localEnv.retType, typedBody.a))
-        throw new Error(`All paths in this function/method must have a return statement: ${funcdef.name}`);
+        throw new Error(`TYPE ERROR: All paths in this function/method must have a return statement: ${funcdef.name}`);
     return {...funcdef, body: typedBody, a:env.localEnv.retType}
 }
 
@@ -348,7 +348,7 @@ export function typeCheckExpr(expr: Expr<null>, env: Env, fieldAccess:'attribute
             for(var i: number = 0; i<expr.arglist.length; i++){
                 var typedArg = typeCheckExpr(expr.arglist[i], env);
                 if(!assignableTo(funcArgList.arglist[i], typedArg.a) && funcArgList.arglist[i].tag!=="any")
-                    throw new Error(`Expected type <${getTypeName(funcArgList.arglist[i])}>; got type <${getTypeName(typedArg.a)}> in parameter ${i}`);
+                    throw new Error(`TYPE ERROR: Expected type <${getTypeName(funcArgList.arglist[i])}>; got type <${getTypeName(typedArg.a)}> in parameter ${i}`);
                 typedArgList.push(typedArg);    
             }
             // console.log(JSON.stringify({...expr, a: funcArgList.retType, name: typedName, arglist: typedArgList}, null, 2))
