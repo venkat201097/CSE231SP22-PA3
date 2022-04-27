@@ -37,6 +37,14 @@ function getBuiltIns() : Map<string, { arglist:Type[], retType: Type }>{
     return builtins
 }
 
+function getSuperClassMethods(classname: string) : Map<string, { arglist: Type[], retType: Type }>{
+    var methods: Map<string, { arglist: Type[], retType: Type }> = new Map();
+    methods.set("__init__", {arglist: [{tag: "object", class: classname}], retType: {tag:"none"}})
+    return methods
+}
+
+export const objectMethods = new Set(['__init__']);
+
 export function typeCheckProgram(program: Program<null>) : Program<Type>{
     var programType : Type = {tag:"none"};
     const typedStmts : Stmt<Type>[] = [];
@@ -143,7 +151,7 @@ export function typeCheckClassDef(classdef: ClassDef<null>, env:Env) : ClassDef<
 
     classEnvMap.fields = classenv.localEnv.vars;
     env.globalEnv.classes.get(classdef.name).fields = classEnvMap.fields;
-
+    const objectMethodSignatures = getSuperClassMethods(classdef.name);
     classdef.methoddefs.forEach((methoddef) => {
         if(classEnvMap.fields.has(methoddef.name))
             throw new Error("TYPE ERROR: Duplicate declaration of variable in same scope: " + methoddef.name);
@@ -153,6 +161,7 @@ export function typeCheckClassDef(classdef: ClassDef<null>, env:Env) : ClassDef<
     env.globalEnv.classes.get(classdef.name).methods = classEnvMap.methods;
 
     classdef.methoddefs.forEach((methoddef) => {
+        checkIfOverloadedFunction(methoddef, objectMethodSignatures, env);
         const typedMethodDef = typeCheckFuncDef(methoddef, createNewScopeEnv(env));
         if(typedMethodDef.args===undefined || typedMethodDef.args.length===0)
             throw new Error(`First parameter of the following method must be of the enclosing class: ${typedMethodDef.name}`);
@@ -171,6 +180,21 @@ function typeCheckType(type: Type, env: Env) : Type{
     if(type.tag==="object" && !env.globalEnv.classes.has(type.class))
         throw new Error(`TYPE ERROR: Invalid type annotation; there is no class named : ${type.class}`);
     return type;
+}
+
+export function checkIfOverloadedFunction(funcdef: FuncDef<null>, methodSignatures:Map<string,{ arglist: Type[], retType: Type }> , env: Env){
+    if(objectMethods.has(funcdef.name)){
+        const methodSignature = methodSignatures.get(funcdef.name);
+        if(funcdef.args===undefined || methodSignature.arglist.length!==funcdef.args.length)
+            throw new Error(`TYPE ERROR: Method overriden with diffrent type signature: ${funcdef.name}`);
+        methodSignature.arglist.forEach((arg,index) => {
+            console.log(arg, funcdef.args[index].typedef)
+            if(!isTypeEqual(arg, funcdef.args[index].typedef))
+                throw new Error(`TYPE ERROR: Method overriden with diffrent type signature: ${funcdef.name}`);
+        })
+        if(!isTypeEqual(funcdef.rettype, methodSignature.retType))
+            throw new Error(`TYPE ERROR: Method overriden with diffrent type signature: ${funcdef.name}`);
+    }
 }
 
 export function typeCheckFuncDef(funcdef: FuncDef<null>, env:Env) : FuncDef<Type> {

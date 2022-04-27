@@ -16,9 +16,8 @@ describe("My tests", () => {
   assertTC("tc-prog-return-object-basic", `
   class A(object):
     i:int = 7
-    def __init__(self:A)->A:
+    def __init__(self:A):
       self.i = 9
-      return self
   i:A = None
   i = A()
   i
@@ -206,6 +205,11 @@ describe("TYPE ERRORS", () => {
     i:int=9
   A(3)`)
 
+  assertTCFail("init-args",`
+  class A(object):
+    def __init__(self:A)->int:
+        return 4
+  A()`)
 //   assertTCFail("constructor-args", `
 //   class A(object):
 //     def f(self:A):
