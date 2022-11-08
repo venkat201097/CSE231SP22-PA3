@@ -2,8 +2,8 @@
 
 Language Specification - 
 
-`program := <var_def | class_def>* <stmt>* `<br>
-`class_def := class <name>(object):
+> program := <var_def | class_def>* <stmt>*
+> class_def := class <name>(object):
                   <var_def | method_def>+
 var_def := <typed_var> = <literal>
 typed_var := <name> : <type>
@@ -32,4 +32,4 @@ literal := None
          | <number>
 type := int | bool | <name>
 number := 32-bit integer literals
-name := Python identifiers other than ``print`` or keywords`
+name := Python identifiers other than `print` or keywords
