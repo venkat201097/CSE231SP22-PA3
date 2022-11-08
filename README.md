@@ -2,8 +2,8 @@
 
 Language Specification - 
 
-`program := <var_def | class_def>* <stmt>* <br>
-class_def := class <name>(object):
+`program := <var_def | class_def>* <stmt>* `<br>
+`class_def := class <name>(object):
                   <var_def | method_def>+
 var_def := <typed_var> = <literal>
 typed_var := <name> : <type>
