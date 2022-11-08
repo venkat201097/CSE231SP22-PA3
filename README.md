@@ -3,8 +3,8 @@
 Language Specification - 
 
 > program := <var_def | class_def>* <stmt>* <br>
-> class_def := class <name>(object):
-                  <var_def | method_def>+
+class_def := class <name>(object): <br>
+                  <var_def | method_def>+ <br>
 var_def := <typed_var> = <literal>
 typed_var := <name> : <type>
 method_def := def <name>(self: <type> [, <typed_var>]*) [-> <type>]?: <method_body>
