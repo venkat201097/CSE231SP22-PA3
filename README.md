@@ -2,34 +2,28 @@
 
 Language Specification - 
 
-> program := <var_def | class_def>* <stmt>* <br>
-class_def := class <name>(object): <br>
-                  <var_def | method_def>+ <br>
-var_def := <typed_var> = <literal>
-typed_var := <name> : <type>
-method_def := def <name>(self: <type> [, <typed_var>]*) [-> <type>]?: <method_body>
-method_body := <var_def>* <stmt>+
-stmt := <name> = <expr>
-      | <expr>.<name> = <expr>
-      | if <expr>: <stmt>+ else: <stmt>+
-      | return <expr>?
-      | <expr>
+<code>program := &lt;var_def | func_def&gt;<sup>*</sup> &lt;stmt&gt;<sup>*</sup>
+var_def := &lt;typed_var&gt; = &lt;literal&gt;
+typed_var := &lt;name&gt; : &lt;type&gt;
+func_def := def &lt;name&gt;([&lt;typed_var&gt; [, &lt;typed_var&gt;]<sup>*</sup>]<sup>?</sup>) [-&gt; &lt;type&gt;]<sup>?</sup> : &lt;func_body&gt;
+func_body := &lt;var_def&gt;<sup>*</sup> &lt;stmt&gt;<sup>+</sup>
+stmt := &lt;name&gt; = &lt;expr&gt;
+      | if &lt;expr&gt;: &lt;stmt&gt;<sup>+</sup> [elif &lt;expr&gt;: &lt;stmt&gt;<sup>+</sup>]<sup>?</sup> [else: &lt;stmt&gt;<sup>+</sup>]<sup>?</sup>
+      | while &lt;expr&gt;: &lt;stmt&gt;<sup>+</sup>
       | pass
-expr := <literal>
-      | <name>
-      | <uniop> <expr>
-      | <expr> <binop> <expr>
-      | ( <expr> )
-      | print(<expr>)
-      | <name>()
-      | <expr>.<name>
-      | <expr>.<name>([<expr> [, <expr>]*]?)
+      | return &lt;expr&gt;<sup>?</sup>
+      | &lt;expr&gt;
+expr := &lt;literal&gt;
+      | &lt;name&gt;
+      | &lt;uniop&gt; &lt;expr&gt;
+      | &lt;expr&gt; &lt;binop&gt; &lt;expr&gt;
+      | ( &lt;expr&gt; )
+      | &lt;name&gt;([&lt;expr&gt; [, &lt;expr&gt;]<sup>*</sup>]<sup>?</sup>)
 uniop := not | -
-binop := + | - | * | // | % | == | != | <= | >= | < | > | is
+binop := + | - | * | // | % | == | != | &lt;= | &gt;= | &lt; | &gt; | is                 
 literal := None
          | True
          | False
-         | <number>
-type := int | bool | <name>
-number := 32-bit integer literals
-name := Python identifiers other than `print` or keywords
+         | &lt;number&gt;
+type := int | bool
+number := 32-bit integer literals</code>
